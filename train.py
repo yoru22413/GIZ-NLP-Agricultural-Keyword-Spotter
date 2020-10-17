@@ -20,7 +20,7 @@ train_loader = DataLoader(Data(X_train, data_augmentation=True),
 val_loader = DataLoader(Data(X_val, data_augmentation=False), batch_size=batch_size)
 
 lr_monitor = LearningRateMonitor(logging_interval='epoch')
-mc = pl.callbacks.ModelCheckpoint(filepath='{epoch}-{E_val:.5f}',
+mc = pl.callbacks.ModelCheckpoint(filepath='{epoch}-{CE_val:.5f}',
                                   save_top_k=3,
                                   save_weights_only=True)
 

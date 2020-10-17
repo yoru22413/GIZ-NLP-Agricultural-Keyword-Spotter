@@ -19,7 +19,6 @@ from model import ModelForward
 class config:
     sampling_rate = 22050
     n_fft = int(0.02 * sampling_rate)
-    n_mels = 80
     hop_length = int(n_fft * 0.5)
 
 
@@ -59,7 +58,6 @@ def seed(seed=2020):
 
 seed()
 
-
 class PadToSize:
     def __init__(self, mode='constant'):
         assert mode in ['constant', 'wrap']
@@ -76,6 +74,8 @@ class PadToSize:
                                 'constant', constant_values=signal.min())
             else:
                 signal = np.pad(signal, pad_width, 'wrap')
+        else:
+            signal = signal[:, :self.size]
         return signal
 
 
@@ -85,7 +85,7 @@ data_augmentation = Compose(
             PadToSize(mode='wrap'),
             PadToSize(mode='constant'),
         ], p=[0.5, 0.5]),
-        Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), max_pixel_value=255.0, p=1.0),
+        Normalize(mean=(0.485, 0.456), std=(0.229, 0.224), p=1.0),
     ]
 )
 data_augmentation_test = Compose(
@@ -94,7 +94,7 @@ data_augmentation_test = Compose(
             PadToSize(mode='wrap'),
             PadToSize(mode='constant'),
         ], p=[0.5, 0.5]),
-        Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), max_pixel_value=255.0, p=1.0),
+        Normalize(mean=(0.485, 0.456), std=(0.229, 0.224), p=1.0),
     ]
 )
 
