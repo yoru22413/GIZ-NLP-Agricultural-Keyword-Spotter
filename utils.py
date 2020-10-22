@@ -10,6 +10,7 @@ from albumentations import (
     Compose,
     Normalize,
     OneOf)
+from albumentations.core.transforms_interface import ImageOnlyTransform
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import Dataset
 
@@ -24,10 +25,9 @@ class config:
 
 def audio_to_spectrogram(audio):
     spectrogram = librosa.stft(audio,
-                               sr=config.sampling_rate,
                                hop_length=config.hop_length,
                                n_fft=config.n_fft)
-    spectrogram = librosa.amplitude_to_db(spectrogram)
+    spectrogram = librosa.amplitude_to_db(np.abs(spectrogram))
     spectrogram = spectrogram.astype(np.float32)
     return spectrogram
 
@@ -58,13 +58,14 @@ def seed(seed=2020):
 
 seed()
 
-class PadToSize:
+class PadToSize(ImageOnlyTransform):
     def __init__(self, mode='constant'):
+        super().__init__()
         assert mode in ['constant', 'wrap']
         self.size = 277
         self.mode = mode
 
-    def __call__(self, signal):
+    def apply(self, signal, **params):
         if signal.shape[1] < self.size:
             padding = self.size - signal.shape[1]
             offset = padding // 2
@@ -84,8 +85,8 @@ data_augmentation = Compose(
         OneOf([
             PadToSize(mode='wrap'),
             PadToSize(mode='constant'),
-        ], p=[0.5, 0.5]),
-        Normalize(mean=(0.485, 0.456), std=(0.229, 0.224), p=1.0),
+        ], p=1),
+        Normalize(mean=0.456, std=0.225, p=1.0),
     ]
 )
 data_augmentation_test = Compose(
@@ -93,8 +94,8 @@ data_augmentation_test = Compose(
         OneOf([
             PadToSize(mode='wrap'),
             PadToSize(mode='constant'),
-        ], p=[0.5, 0.5]),
-        Normalize(mean=(0.485, 0.456), std=(0.229, 0.224), p=1.0),
+        ], p=1),
+        Normalize(mean=0.456, std=0.225, p=1.0),
     ]
 )
 
@@ -131,7 +132,7 @@ class Data(Dataset):
         return len(self.df)
 
     def prepare_data(self, path):
-        data = librosa.load(path)
+        data, _ = librosa.load(path, sr=config.sampling_rate)
         data = audio_to_spectrogram(data)
         data = data_augmentation(image=data)['image'] if self.data_augmentation else data_augmentation_test(image=data)[
             'image']
@@ -140,7 +141,7 @@ class Data(Dataset):
 
     def __getitem__(self, idx):
         if not self.test:
-            fn, label, quality = self.df.iloc[idx]
+            fn, label = self.df.iloc[idx]
         else:
             fn = self.df.iloc[idx]
 
