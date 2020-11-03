@@ -13,7 +13,7 @@ train, test = dp.get_train_test()
 X_train, X_val = train_test_split(train, test_size=0.2, stratify=train['label'], shuffle=True,
                                   random_state=4738)
 
-batch_size = 32
+batch_size = 8
 
 train_loader = DataLoader(Data(X_train, data_augmentation=True),
                           batch_size=batch_size)

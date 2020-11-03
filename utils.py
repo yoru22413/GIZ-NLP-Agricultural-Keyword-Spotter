@@ -149,7 +149,7 @@ class Data(Dataset):
         if self.test:
             return data
         else:
-            return data, np.array([label], dtype=np.int64)
+            return data, np.array(label, dtype=np.int64)
 
 
 class Model(pl.LightningModule):
