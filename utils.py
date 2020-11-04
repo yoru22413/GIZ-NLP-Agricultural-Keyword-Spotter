@@ -189,23 +189,20 @@ class Model(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = self.criterion(y_hat, y)
-        result = pl.TrainResult(loss)
-        result.log('E_train', loss, prog_bar=True, on_epoch=True, on_step=False, logger=True)
-        return result
+        self.log('E_train', loss, prog_bar=True, on_epoch=True, on_step=False, logger=True)
+        return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
         loss = self.criterion(y_hat, y)
-        result = pl.EvalResult()
-        result.log('E_val', loss, prog_bar=False, on_epoch=True, on_step=False, logger=True)
-        return result
+        self.log('E_val', loss, prog_bar=False, on_epoch=True, on_step=False, logger=True)
+        return loss
 
     def validation_epoch_end(self, outputs):
-        metric = outputs['E_val'].mean()
-        result = pl.EvalResult(checkpoint_on=metric)
-        result.log('CE_val', metric, prog_bar=True, logger=True)
-        return result
+        metric = np.array(outputs).mean()
+        self.log('CE_val', metric, prog_bar=True, logger=True)
+        return metric
 
     def configure_optimizers(self):
         self.optimizer = torch.optim.Adam(self.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
@@ -213,6 +210,6 @@ class Model(pl.LightningModule):
             'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, factor=0.5, patience=8),
             'interval': 'epoch',
             'frequency': 1,
-            'monitor': 'val_loss'
+            'monitor': 'CE_val'
         }
         return [self.optimizer], [self.scheduler]
