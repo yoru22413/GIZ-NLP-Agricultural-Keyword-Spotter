@@ -27,5 +27,5 @@ mc = pl.callbacks.ModelCheckpoint(filepath='{epoch}-{CE_val:.5f}',
 
 model = Model()
 trainer = pl.Trainer(gpus=None, precision=32, callbacks=[mc, lr_monitor],
-                     progress_bar_refresh_rate=5, max_epochs=120, limit_train_batches=10, limit_val_batches=5)
+                     progress_bar_refresh_rate=5, max_epochs=120)
 trainer.fit(model, train_loader, val_loader)

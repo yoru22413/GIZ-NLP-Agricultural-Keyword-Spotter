@@ -200,7 +200,7 @@ class Model(pl.LightningModule):
         return loss
 
     def validation_epoch_end(self, outputs):
-        metric = np.array(outputs).mean()
+        metric = torch.tensor(outputs).mean()
         self.log('CE_val', metric, prog_bar=True, logger=True)
         return metric
 
