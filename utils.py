@@ -58,6 +58,7 @@ def seed(seed=2020):
 
 seed()
 
+
 class PadToSize(ImageOnlyTransform):
     def __init__(self, mode='constant'):
         super().__init__()
@@ -101,15 +102,28 @@ data_augmentation_test = Compose(
 
 
 class DatasetPreparer:
-    def __init__(self, train_path, audio_path):
+    def __init__(self, train_path, audio_path, additional: list = None):
         self.train_path = train_path
         self.audio_path = audio_path
         self.label_encoder = LabelEncoder()
+        self.additional = additional
 
     def get_train_test(self):
         train = pd.read_csv(self.train_path)
         list_audio = [self.audio_path + '/' + x for x in os.listdir(self.audio_path)]
         test = [fn for fn in list_audio if fn not in train['fn'].tolist()]
+        if self.additional is not None:
+            df = pd.DataFrame(columns=['fn', 'label'])
+            i = 0
+            for add in self.additional:
+                gen = os.walk(add)
+                for k, (a, b, c) in enumerate(gen):
+                    if k == 0:
+                        continue
+                    for h in c:
+                        df.loc[i] = [os.path.join(a, h), os.path.split(a)[1]]
+                        i += 1
+            train = pd.concat([train, df], ignore_index=True)
         train['label'] = self.label_encoder.fit_transform(train['label'])
         return train, pd.Series(test, name='fn')
 

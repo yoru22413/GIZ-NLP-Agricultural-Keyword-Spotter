@@ -7,7 +7,7 @@ from utils import seed, DatasetPreparer, Data, Model
 
 seed()
 
-dp = DatasetPreparer('Train.csv', 'audio_files')
+dp = DatasetPreparer('Train.csv', 'audio_files', additional=['nlp_keywords', 'latest_keywords'])
 train, test = dp.get_train_test()
 
 X_train, X_val = train_test_split(train, test_size=0.2, stratify=train['label'], shuffle=True,
