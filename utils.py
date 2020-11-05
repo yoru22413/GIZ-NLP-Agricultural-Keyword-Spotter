@@ -141,13 +141,21 @@ class Data(Dataset):
         self.df = df
         self.data_augmentation = data_augmentation
         self.test = test
+        self.data_path = 'data'
+        if not os.path.isdir(self.data_path):
+            os.makedirs(self.data_path)
 
     def __len__(self):
         return len(self.df)
 
-    def prepare_data(self, path):
-        data, _ = librosa.load(path, sr=config.sampling_rate)
-        data = audio_to_spectrogram(data)
+    def prepare_data(self, path : str):
+        path2 = os.path.join(self.data_path, '-'.join(os.path.split(path)))
+        if os.path.isfile(path2):
+            data = np.load(os.path.join(self.data_path, path2))
+        else:
+            data, _ = librosa.load(path, sr=config.sampling_rate)
+            data = audio_to_spectrogram(data)
+            np.save(path2, data)
         data = data_augmentation(image=data)['image'] if self.data_augmentation else data_augmentation_test(image=data)[
             'image']
         data = np.expand_dims(data, axis=0)
