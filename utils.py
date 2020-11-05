@@ -149,9 +149,10 @@ class Data(Dataset):
         return len(self.df)
 
     def prepare_data(self, path : str):
-        path2 = os.path.join(self.data_path, '-'.join(os.path.split(path)))
+        path = os.path.normpath(path)
+        path2 = os.path.join(self.data_path, path.replace(os.sep, '-')) + '.npy'
         if os.path.isfile(path2):
-            data = np.load(os.path.join(self.data_path, path2))
+            data = np.load(path2)
         else:
             data, _ = librosa.load(path, sr=config.sampling_rate)
             data = audio_to_spectrogram(data)
@@ -166,7 +167,6 @@ class Data(Dataset):
             fn, label = self.df.iloc[idx]
         else:
             fn = self.df.iloc[idx]
-
         data = self.prepare_data(fn)
         if self.test:
             return data
